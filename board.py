@@ -75,13 +75,7 @@ class Board():
             for s in self.sectors:
                 for c in s.cells:
                     if c.abs_col == col:
-
-                        if c.value in output.keys():
-                            output[c.value] += 1
-                            look_up[c.value].append((c.abs_row, c.abs_col))
-                        else:
-                            output[c.value] = 1
-                            look_up[c.value] = [(c.abs_row, c.abs_col)]
+                        self.update_output_look_up(c, output, look_up)
             return output, look_up
 
         for s in self.sectors:
@@ -91,10 +85,29 @@ class Board():
 
         return output
 
+    def update_output_look_up(self, c, output, look_up):
+        for n in c.base_set:
+            if n in output.keys():
+                output[n] += 1
+                look_up[n].append((c.abs_row, c.abs_col))
+            else:
+                output[n] = 1
+                look_up[n] = [(c.abs_row, c.abs_col)]
 
 
-    def values_in_row(self, row):
+    def values_in_row(self, row, **kwargs):
+
         output = set([])
+
+        if 'counts' in kwargs:
+            output = {}
+            look_up = {}
+            for s in self.sectors:
+                for c in s.cells:
+                    if c.abs_row == row:
+                        self.update_output_look_up(c, output, look_up)
+            return output, look_up
+
         for s in self.sectors:
             for c in s.cells:
                 if c.abs_row == row:
@@ -114,14 +127,7 @@ class Board():
         for c in self.sectors.index[i][j].cells:
 
             if 'counts' in kwargs:
-                for n in c.base_set:
-                    if n in output.keys():
-                        output[n] += 1
-                        look_up[n].append((c.abs_row,c.abs_col))
-                    else:
-                        output[n] = 1
-                        look_up[n] = [(c.abs_row,c.abs_col)]
-                #output.update(c.base_set)
+                self.update_output_look_up(c, output, look_up)
 
             else:
                 output.add(c.value)
@@ -218,13 +224,13 @@ class Board():
             if v == 1:
                 self.find_conclusion(k, look_up_values)
 
-    # def row_conclusion(self, row):
-    #     print(f"Starting Row Conclusion : {row}")
-    #     base_values_in_row, look_up_values = self.values_in_row(row, counts=True)
-    #
-    #     for k,v in base_values_in_row.items():
-    #         if v == 1:
-    #             self.find_conclusion(k, look_up_values)
+    def row_conclusion(self, row):
+        print(f"Starting Row Conclusion : {row}")
+        base_values_in_row, look_up_values = self.values_in_row(row, counts=True)
+
+        for k,v in base_values_in_row.items():
+            if v == 1:
+                self.find_conclusion(k, look_up_values)
 
 
 
@@ -250,6 +256,9 @@ class Board():
 
         for i in range(self.size ** 2):
             self.col_conclusion(i)
+
+        for i in range(self.size ** 2):
+            self.row_conclusion(i)
 
 
         self.print_cell_locations()
