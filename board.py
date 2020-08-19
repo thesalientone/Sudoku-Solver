@@ -1,4 +1,6 @@
 import csv
+from collections import defaultdict
+import datetime
 
 #Class to maintain board structure
 
@@ -17,6 +19,7 @@ class Board():
         self.size = size
         board_size = size
         self.sectors = Grid(size, Sector, self)
+        self.output_file = f"output/{datetime.date.today()}-{self.size}.csv"
 
 
 
@@ -59,40 +62,39 @@ class Board():
 
         #self.check_rows()
 
-    # def table_cells(self):
-    #
-    #     output = {
-    #         1: [],
-    #         2: [],
-    #         3: [],
-    #         4: [],
-    #
-    #     }
-    #
-    #     for c in self.all_cells():
-    #
-    #
-    # def write_board(self, output_csv):
-    #
-    #
-    #
-    #     i = 0
-    #     j = 0
-    #
-    #     with open(output_csv) as csvfile:
-    #         csv_writer = csv.writer(csvfile)
-    #         for row in csv_reader:
-    #             j = 0
-    #             for value in row:
-    #
-    #                 c = self.absolute_cell_reference(i, j)
-    #                 if value != '':
-    #                     c.value = int(value)
-    #                 j += 1
-    #                 pass
-    #             i += 1
-    #
-    #         csvfile.close()
+    def table_cells(self):
+
+        output = defaultdict(SparseList)
+
+        for c in self.all_cells():
+            output[c.abs_row][c.abs_col] = c.value
+
+        return output
+
+
+    def write_board(self, output_csv):
+
+
+
+        i = 0
+        j = 0
+        table_cells = self.table_cells()
+        with open(output_csv, "w+") as csvfile:
+            csv_writer = csv.writer(csvfile)
+            for row in table_cells.values():
+
+                csv_writer.writerow(row)
+                # j = 0
+                # for value in row:
+                #
+                #     c = self.absolute_cell_reference(i, j)
+                #     if value != '':
+                #         c.value = int(value)
+                #     j += 1
+                #     pass
+                # i += 1
+
+            csvfile.close()
 
 
     def count_filled_cells(self):
@@ -121,6 +123,8 @@ class Board():
             counter += 1
         print(f"Filled {filled_cells}/{goal_cells} cells")
         print(f"Simulation Complete")
+
+        self.write_board(self.output_file)
 
 
     def values_in_col(self, col, **kwargs):
@@ -302,6 +306,8 @@ class Board():
             for j in range(self.size):
                 self.sector_constraint((i,j))
 
+
+
     def execute_conclusions(self):
         #Sector conclusion
         for i in range(self.size):
@@ -395,6 +401,10 @@ class Cell(Frame):
             self.__dict__[key] = value
             if value != None:
                 self.base_set.clear()
+                self.parent.parent.vertical_constraint(self.abs_col)
+                self.parent.parent.horizontal_constraint(self.abs_row)
+                self.parent.parent.sector_constraint(self.parent.index)
+
 
 
         else:
@@ -408,7 +418,14 @@ class Cell(Frame):
         print(f"{self.abs_row},{self.abs_col} At Sector {self.parent.index} Cell {self.index} Value {self.value} Base Set {self.base_set}")
 
 
-
+class SparseList(list):
+    #https://stackoverflow.com/questions/10630442/assigning-a-value-to-list-by-index-out-of-range
+    def __setitem__(self, index, value):
+        """Overrides list's __setitem__ to extend the list
+           if the accessed index is out of bounds."""
+        sparsity = index - len(self) + 1
+        self.extend([None] * sparsity)
+        list.__setitem__(self, index, value)
 
 
 
