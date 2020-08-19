@@ -135,8 +135,8 @@ class Board():
     def check_rows(self):
 
         for i in range(self.size ** 2):
-            print(f"Values in Row {i} : ", self.values_in_row(i))
-            print(f"Values in Column {i} : ", self.values_in_col(i))
+            print(f"Values in Row {i} : ", self.values_in_line(i, line='row'))
+            print(f"Values in Column {i} : ", self.values_in_line(i, line='col'))
 
         for i in range(self.size):
             for j in range(self.size):
@@ -160,7 +160,7 @@ class Board():
 
     def vertical_constraint(self,col):
         print("Starting Vertical Constraint")
-        values_in_col = set(self.values_in_col(col))
+        values_in_col = set(self.values_in_line(col, line='col'))
 
         [c.base_set.difference_update(values_in_col) for c in self.all_cells() if c.abs_col == col]
 
@@ -169,7 +169,7 @@ class Board():
     def horizontal_constraint(self,row):
 
         print("Starting Horizontal Constraint")
-        values_in_row = set(self.values_in_row(row))
+        values_in_row = set(self.values_in_line(row, line='col'))
 
         [c.base_set.difference_update(values_in_row) for c in self.all_cells() if c.abs_row == row]
 
