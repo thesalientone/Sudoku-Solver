@@ -57,12 +57,70 @@ class Board():
 
 
 
-        self.check_rows()
+        #self.check_rows()
+
+    # def table_cells(self):
+    #
+    #     output = {
+    #         1: [],
+    #         2: [],
+    #         3: [],
+    #         4: [],
+    #
+    #     }
+    #
+    #     for c in self.all_cells():
+    #
+    #
+    # def write_board(self, output_csv):
+    #
+    #
+    #
+    #     i = 0
+    #     j = 0
+    #
+    #     with open(output_csv) as csvfile:
+    #         csv_writer = csv.writer(csvfile)
+    #         for row in csv_reader:
+    #             j = 0
+    #             for value in row:
+    #
+    #                 c = self.absolute_cell_reference(i, j)
+    #                 if value != '':
+    #                     c.value = int(value)
+    #                 j += 1
+    #                 pass
+    #             i += 1
+    #
+    #         csvfile.close()
+
+
+    def count_filled_cells(self):
+
+        i = 0
+
+        for c in self.all_cells():
+            if c.base_set == set([]):
+                i += 1
+        return i
 
     def execute_game(self):
 
-        self.execute_constraints()
-        self.execute_conclusions()
+        filled_cells = self.count_filled_cells()
+        goal_cells = (self.size ** 2) ** 2
+        counter = 0
+        while filled_cells != goal_cells:
+
+            print(f"Filled {filled_cells}/{goal_cells} cells")
+            print(f"Beginning Iteration : {counter}")
+
+            self.execute_constraints()
+            self.execute_conclusions()
+            filled_cells = self.count_filled_cells()
+
+            counter += 1
+        print(f"Filled {filled_cells}/{goal_cells} cells")
+        print(f"Simulation Complete")
 
 
     def values_in_col(self, col, **kwargs):
@@ -163,7 +221,7 @@ class Board():
                 yield c
 
     def vertical_constraint(self,col):
-        print("Starting Vertical Constraint")
+        #print("Starting Vertical Constraint")
         values_in_col = set(self.values_in_col(col))
         [c.base_set.difference_update(values_in_col) for c in self.all_cells() if c.abs_col == col]
 
@@ -171,7 +229,7 @@ class Board():
 
     def horizontal_constraint(self,row):
 
-        print("Starting Horizontal Constraint")
+        #print("Starting Horizontal Constraint")
         values_in_row = set(self.values_in_row(row))
 
         [c.base_set.difference_update(values_in_row) for c in self.all_cells() if c.abs_row == row]
@@ -179,7 +237,7 @@ class Board():
         pass
 
     def sector_constraint(self, index):
-        print("Starting Sector Constraint")
+        #print("Starting Sector Constraint")
         values_in_sector = set(self.values_in_sector(index))
         i = index[0]
         j = index[1]
@@ -189,7 +247,7 @@ class Board():
 
     def sector_conclusion(self, index):
 
-        print(f"Starting Sector Conclusion : {index}")
+        #print(f"Starting Sector Conclusion : {index}")
         base_values_in_sector, look_up_values = self.values_in_sector(index, counts=True)
 
 
@@ -198,26 +256,22 @@ class Board():
 
         for k, v in base_values_in_sector.items():
             if v == 1:
-                # print(f"CONCLUSION FOUND Value = {k}")
-                # cell_coordinates = look_up_values[k] #Note lookup values contains a list of points [(x,y)]
-                # cell_x = cell_coordinates[0][0]
-                # cell_y = cell_coordinates[0][1]
-                # c = self.absolute_cell_reference(cell_x, cell_y)
-                # c.print_location()
-                # #Code to assign value
+
                 self.find_conclusion(k, look_up_values)
 
     def find_conclusion(self, number, look_up_values):
-        print(f"CONCLUSION FOUND Value = {number}")
+        #print(f"CONCLUSION FOUND Value = {number}")
         cell_coordinates = look_up_values[number]  # Note lookup values contains a list of points [(x,y)]
         cell_x = cell_coordinates[0][0]
         cell_y = cell_coordinates[0][1]
         c = self.absolute_cell_reference(cell_x, cell_y)
-        c.print_location()
+        #c.print_location()
         # Code to assign value
+        c.value = number
+
 
     def col_conclusion(self, col):
-        print(f"Starting Column Conclusion : {col}")
+        #print(f"Starting Column Conclusion : {col}")
         base_values_in_col, look_up_values = self.values_in_col(col, counts=True)
 
         for k,v in base_values_in_col.items():
@@ -225,7 +279,7 @@ class Board():
                 self.find_conclusion(k, look_up_values)
 
     def row_conclusion(self, row):
-        print(f"Starting Row Conclusion : {row}")
+        #print(f"Starting Row Conclusion : {row}")
         base_values_in_row, look_up_values = self.values_in_row(row, counts=True)
 
         for k,v in base_values_in_row.items():
@@ -241,7 +295,7 @@ class Board():
         for i in range(self.size ** 2):
             self.vertical_constraint(i)
             self.horizontal_constraint(i)
-            pass
+
 
         #Sector base set exclusion
         for i in range(self.size):
@@ -261,8 +315,8 @@ class Board():
             self.row_conclusion(i)
 
 
-        self.print_cell_locations()
-        print("constraints done")
+        #self.print_cell_locations()
+        #print("constraints done")
 
 class Grid():
 
