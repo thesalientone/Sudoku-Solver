@@ -69,31 +69,29 @@ class Board():
 
         output = set([])
 
-        # if 'counts' in kwargs:
-        #     output = {}
-        #     look_up = {}
-        #
+        if 'counts' in kwargs:
+            output = {}
+            look_up = {}
+            for s in self.sectors:
+                for c in s.cells:
+                    if c.abs_col == col:
+
+                        if c.value in output.keys():
+                            output[c.value] += 1
+                            look_up[c.value].append((c.abs_row, c.abs_col))
+                        else:
+                            output[c.value] = 1
+                            look_up[c.value] = [(c.abs_row, c.abs_col)]
+            return output, look_up
+
         for s in self.sectors:
             for c in s.cells:
                 if c.abs_col == col:
                     output.add(c.value)
 
         return output
-    def values_in_line(self, pos, **kwargs):
-
-        line = kwargs['line']
-        output = set([])
-        for s in self.sectors:
-            for c in s.cells:
-                if line == 'row':
-                    if c.abs_row == pos:
-                        output.add(c.value)
-                else:
-                    if c.abs_col == pos:
-                        output.add(c.value)
 
 
-        return output
 
     def values_in_row(self, row):
         output = set([])
@@ -135,8 +133,8 @@ class Board():
     def check_rows(self):
 
         for i in range(self.size ** 2):
-            print(f"Values in Row {i} : ", self.values_in_line(i, line='row'))
-            print(f"Values in Column {i} : ", self.values_in_line(i, line='col'))
+            print(f"Values in Row {i} : ", self.values_in_row(i))
+            print(f"Values in Column {i} : ", self.values_in_col(i))
 
         for i in range(self.size):
             for j in range(self.size):
@@ -160,8 +158,7 @@ class Board():
 
     def vertical_constraint(self,col):
         print("Starting Vertical Constraint")
-        values_in_col = set(self.values_in_line(col, line='col'))
-
+        values_in_col = set(self.values_in_col(col))
         [c.base_set.difference_update(values_in_col) for c in self.all_cells() if c.abs_col == col]
 
 
@@ -169,7 +166,7 @@ class Board():
     def horizontal_constraint(self,row):
 
         print("Starting Horizontal Constraint")
-        values_in_row = set(self.values_in_line(row, line='col'))
+        values_in_row = set(self.values_in_row(row))
 
         [c.base_set.difference_update(values_in_row) for c in self.all_cells() if c.abs_row == row]
 
@@ -195,23 +192,39 @@ class Board():
 
         for k, v in base_values_in_sector.items():
             if v == 1:
-                print(f"CONCLUSION FOUND Value = {k}")
-                cell_coordinates = look_up_values[k] #Note lookup values contains a list of points [(x,y)]
-                cell_x = cell_coordinates[0][0]
-                cell_y = cell_coordinates[0][1]
-                c = self.absolute_cell_reference(cell_x, cell_y)
-                c.print_location()
-                #Code to assign value
+                # print(f"CONCLUSION FOUND Value = {k}")
+                # cell_coordinates = look_up_values[k] #Note lookup values contains a list of points [(x,y)]
+                # cell_x = cell_coordinates[0][0]
+                # cell_y = cell_coordinates[0][1]
+                # c = self.absolute_cell_reference(cell_x, cell_y)
+                # c.print_location()
+                # #Code to assign value
+                self.find_conclusion(k, look_up_values)
 
-        # for c in self.all_cells():
-        #     if c.parent is self.sectors.index[i][j]:
-        #
-        #
-        #         print(f"Testing Constraint Base Values in Sector : {base_values_in_sector}, Base Set : {c.base_set}")
-        #
-        #         # if len(c.base_set.difference(base_values_in_sector)) == 1:
-        #         #     print(f"CONSTRAINT FOUND")
-        #         #     c.print_location()
+    def find_conclusion(self, number, look_up_values):
+        print(f"CONCLUSION FOUND Value = {number}")
+        cell_coordinates = look_up_values[number]  # Note lookup values contains a list of points [(x,y)]
+        cell_x = cell_coordinates[0][0]
+        cell_y = cell_coordinates[0][1]
+        c = self.absolute_cell_reference(cell_x, cell_y)
+        c.print_location()
+        # Code to assign value
+
+    def col_conclusion(self, col):
+        print(f"Starting Column Conclusion : {col}")
+        base_values_in_col, look_up_values = self.values_in_col(col, counts=True)
+
+        for k,v in base_values_in_col.items():
+            if v == 1:
+                self.find_conclusion(k, look_up_values)
+
+    # def row_conclusion(self, row):
+    #     print(f"Starting Row Conclusion : {row}")
+    #     base_values_in_row, look_up_values = self.values_in_row(row, counts=True)
+    #
+    #     for k,v in base_values_in_row.items():
+    #         if v == 1:
+    #             self.find_conclusion(k, look_up_values)
 
 
 
@@ -234,6 +247,9 @@ class Board():
         for i in range(self.size):
             for j in range(self.size):
                 self.sector_conclusion((i, j))
+
+        for i in range(self.size ** 2):
+            self.col_conclusion(i)
 
 
         self.print_cell_locations()
