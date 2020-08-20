@@ -9,17 +9,19 @@ class Board():
 
     #Create board based on size
     #Note easy from https://www.puzzles.ca/sudoku_puzzles/sudoku_easy_481.html
+    #Note hard from https://stackoverflow.com/questions/10630442/assigning-a-value-to-list-by-index-out-of-range
+    #Some notes borrowed from https://stackoverflow.com/questions/1697334/algorithm-for-solving-sudoku
 
 
 
     def __init__(self, size):
         print("Board Created")
-        #self.sector_array = []
-        #self.create(size)
+
         self.size = size
         board_size = size
         self.sectors = Grid(size, Sector, self)
         self.output_file = f"output/{datetime.date.today()}-{self.size}.csv"
+        self.filled_cells = 0
 
 
 
@@ -84,15 +86,6 @@ class Board():
             for row in table_cells.values():
 
                 csv_writer.writerow(row)
-                # j = 0
-                # for value in row:
-                #
-                #     c = self.absolute_cell_reference(i, j)
-                #     if value != '':
-                #         c.value = int(value)
-                #     j += 1
-                #     pass
-                # i += 1
 
             csvfile.close()
 
@@ -113,6 +106,7 @@ class Board():
         counter = 0
         while filled_cells != goal_cells:
 
+            self.filled_cells = filled_cells
             print(f"Filled {filled_cells}/{goal_cells} cells")
             print(f"Beginning Iteration : {counter}")
 
@@ -120,7 +114,12 @@ class Board():
             self.execute_conclusions()
             filled_cells = self.count_filled_cells()
 
+            if self.filled_cells == filled_cells:
+                self.print_cell_locations()
+                print("The process is failing")
+
             counter += 1
+
         print(f"Filled {filled_cells}/{goal_cells} cells")
         print(f"Simulation Complete")
 
